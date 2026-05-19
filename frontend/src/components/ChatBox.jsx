@@ -13,7 +13,9 @@ export default function ChatBox() {
 	const verifyPayment = async (reference) => {
 		setIsLoading(true);
 		try {
-			const res = await axios.get(`/api/payment/verify/${reference}`);
+			const res = await axios.get(
+				`https://restaurant-chatbot-backend-i517.onrender.com/api/payment/verify/${reference}`,
+			);
 
 			setMessages((prev) => [
 				...prev,
@@ -75,11 +77,13 @@ useEffect(() => {
 		}
 		setIsLoading(true);
 		try {
-			// In production, update this to your full backend URL if not using a proxy
-			const res = await axios.post('/api/chat/message', {
-				deviceId: id,
-				message: text,
-			});
+			const res = await axios.post(
+				'https://restaurant-chatbot-backend-i517.onrender.com/api/chat/message',
+				{
+					deviceId: id,
+					message: text,
+				},
+			);
 			setMessages((prev) => [...prev, { sender: 'bot', text: res.data.reply }]);
 		} catch (error) {
 			setMessages((prev) => [
