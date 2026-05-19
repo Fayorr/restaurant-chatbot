@@ -48,14 +48,19 @@ export const handleMessage = async (req, res) => {
 		}
 
 		// 0: Cancel Order
+		// 0: Cancel Order / Main Menu
 		if (message === '0') {
-			if (cart) {
-				cart.status = 'CANCELLED';
-				await cart.save();
-			}
 			session.state = 'MAIN_MENU';
 			await session.save();
-			return res.json({ reply: `Order cancelled.\n\n${MAIN_MENU}` });
+
+			if (cart && cart.items.length > 0) {
+				cart.status = 'CANCELLED';
+				await cart.save();
+				return res.json({ reply: `Order cancelled.\n\n${MAIN_MENU}` });
+			} else {
+				// If they don't have an active cart (like right after paying)
+				return res.json({ reply: `Returning to main menu...\n\n${MAIN_MENU}` });
+			}
 		}
 
 		// 97: View Current Order
@@ -109,7 +114,8 @@ export const handleMessage = async (req, res) => {
 					'https://api.paystack.co/transaction/initialize',
 					{
 						email: `customer-${deviceId}@restaurant.com`,
-						amount: total * 100, // Paystack uses kobo
+						amount: total * 100,
+						callback_url: 'http://localhost:8080/',
 						metadata: { orderId: cart._id },
 					},
 					{

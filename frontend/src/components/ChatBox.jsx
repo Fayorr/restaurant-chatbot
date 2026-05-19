@@ -8,17 +8,56 @@ export default function ChatBox() {
 	const [deviceId, setDeviceId] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const messagesEndRef = useRef(null);
+	const hasVerified = useRef(false);
+
+	const verifyPayment = async (reference) => {
+		setIsLoading(true);
+		try {
+			const res = await axios.get(`/api/payment/verify/${reference}`);
+
+			setMessages((prev) => [
+				...prev,
+				{
+					sender: 'bot',
+					text: `✅ ${res.data.message}\n\nSelect 1 to place a new order\nSelect 0 for main menu`,
+				},
+			]);
+
+			window.history.replaceState({}, document.title, '/');
+		} catch (error) {
+			console.error(error);
+			setMessages((prev) => [
+				...prev,
+				{
+					sender: 'bot',
+					text: '❌ Payment verification failed. Please check with support.',
+				},
+			]);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
 	// Initialize session and get the first greeting
-	useEffect(() => {
-		let id = localStorage.getItem('chatbot_device_id');
-		if (!id) {
-			id = uuidv4();
-			localStorage.setItem('chatbot_device_id', id);
-		}
-		setDeviceId(id);
+useEffect(() => {
+	let id = localStorage.getItem('chatbot_device_id');
+	if (!id) {
+		id = uuidv4();
+		localStorage.setItem('chatbot_device_id', id);
+	}
+	setDeviceId(id);
+
+	const urlParams = new URLSearchParams(window.location.search);
+	const reference = urlParams.get('reference');
+
+	// Use the ref to ensure this only runs ONCE, even in React StrictMode
+	if (reference && !hasVerified.current) {
+		hasVerified.current = true;
+		verifyPayment(reference);
+	} else if (!reference && messages.length === 0) {
 		sendMessage('', id);
-	}, []);
+	}
+}, []);
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,6 +66,8 @@ export default function ChatBox() {
 	useEffect(() => {
 		scrollToBottom();
 	}, [messages]);
+
+
 
 	const sendMessage = async (text, id = deviceId) => {
 		if (text) {
@@ -85,7 +126,7 @@ export default function ChatBox() {
 	return (
 		<div className='flex flex-col h-[80vh] max-w-md mx-auto bg-gray-50 border shadow-2xl rounded-lg overflow-hidden'>
 			<div className='bg-green-700 text-white p-4 font-bold text-xl text-center shadow-sm'>
-				🍽️ Restaurant Order Bot
+			Restaurant Order Bot
 			</div>
 
 			<div className='flex-1 p-4 overflow-y-auto'>
