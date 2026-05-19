@@ -115,7 +115,7 @@ export const handleMessage = async (req, res) => {
 					{
 						email: `customer-${deviceId}@restaurant.com`,
 						amount: total * 100,
-						// callback_url: 'http://localhost:8080/',
+						callback_url: 'https://restaurant-chatbot-sandy.vercel.app/',
 						metadata: { orderId: cart._id },
 					},
 					{
